@@ -268,6 +268,7 @@ results %>%
   arrange(Simulation, Strategy, Hand) ->
   results_cum
 
+# line plots of result
 results_cum %>%
   filter(HandPlayed > 0) %>%
   # filter(Simulation < 10) %>%
@@ -292,7 +293,7 @@ results_cum %>%
        title = "The House Always Wins At Baccarat (Punto Banco)",
        subtitle = paste(
          paste("Average payoff of", format(simulations, big.mark = ","), 
-               "simulated playthroughs of", hands_per_simulation, "hands of North American baccarat"),
+               "simulated playthroughs of", hands_per_simulation, "hands of North American baccarat."),
          "Every strategy results in losses. Best to bet only Banco and avoid Egalité completely (even 9-1).",
          sep = "\n"),
        caption = "github.com/paulvanderlaken/2018_casino   //   paulvanderlaken.com") +
@@ -309,3 +310,38 @@ ggsave(here(paste0("images/average_payoff_PB_",
                    hands_per_simulation, "h",
                    ".png")),
        dpi = 600, width = 9, height = 6)
+
+# boxplot of results
+results_cum %>%
+  group_by(Simulation, Strategy) %>%
+  filter(Hand == max(Hand)) %>%
+  ggplot(aes(x = Strategy, y = Profit)) +
+  geom_hline(yintercept = 0, lty = 5, col = "grey70", size = 1) +
+  geom_boxplot(aes(fill = Strategy, group = Strategy)) +
+  scale_fill_manual(values = c("red", "yellow2", "lightblue", "green3", "blue")) +
+  labs(y = "Profit after 100 hands (% of bet size)",
+       x = "Strategy",
+       title = "The House Always Wins At Baccarat (Punto Banco)",
+       subtitle = paste(
+         paste("Boxplots of payoff of", format(simulations, big.mark = ","), 
+               "simulated playthroughs of", hands_per_simulation, "hands of North American baccarat."),
+         "Every strategy results in losses. Best to bet only Banco and avoid Egalité completely (even 9-1).",
+         sep = "\n"),
+       caption = "github.com/paulvanderlaken/2018_casino   //   paulvanderlaken.com") +
+  theme_light() +
+  theme(legend.position = "none",
+        text = element_text(family = font),
+        plot.title = element_text(size = 20))
+ggsave(here(paste0("images/boxplot_profit_PB_",
+                   simulations, "s",
+                   hands_per_simulation, "h",
+                   ".png")),
+       dpi = 600, width = 9, height = 6)
+
+# performance of egalite strategy
+results_cum %>%
+  filter(Strategy == egalite_label) %>%
+  group_by(Simulation) %>%
+  filter(Hand == max(Hand)) %>%
+  .$Profit %>%
+  summary()
